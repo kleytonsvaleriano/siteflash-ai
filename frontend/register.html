@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Criar Conta — SiteFlash AI</title>
+  <meta name="description" content="Crie sua conta gratuita e comece a gerar sites profissionais em segundos.">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: var(--bg-0);
+      overflow: hidden;
+      padding: 1.5rem;
+    }
+    .bg-orb { position: fixed; border-radius: 50%; filter: blur(100px); opacity: 0.12; pointer-events: none; }
+    .bg-orb-1 { width: 600px; height: 600px; background: #8b5cf6; top: -200px; left: -200px; }
+    .bg-orb-2 { width: 400px; height: 400px; background: #ec4899; bottom: -100px; right: -100px; }
+
+    .auth-container { width: 100%; max-width: 480px; position: relative; z-index: 1; }
+
+    .auth-card {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 2.5rem;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .auth-logo {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0.75rem; margin-bottom: 1.75rem; text-decoration: none;
+    }
+    .auth-logo-icon { width: 44px; height: 44px; background: var(--brand-gradient); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+    .auth-logo-text { font-family: var(--font-display); font-weight: 800; font-size: 1.4rem; color: var(--text-primary); }
+    .auth-logo-text span { background: var(--brand-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    .auth-title { font-size: 1.4rem; font-weight: 700; text-align: center; margin-bottom: 0.4rem; }
+    .auth-subtitle { color: var(--text-muted); text-align: center; font-size: 0.875rem; margin-bottom: 1.75rem; }
+
+    .error-banner { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: var(--radius); padding: 0.75rem 1rem; color: #ef4444; font-size: 0.875rem; margin-bottom: 1.25rem; display: none; }
+    .error-banner.visible { display: block; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    
+    .btn-submit { width: 100%; padding: 0.875rem; font-size: 1rem; }
+
+    .plan-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .plan-option {
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      text-align: center;
+    }
+
+    .plan-option:hover { border-color: var(--brand-primary); }
+    .plan-option.selected { border-color: var(--brand-primary); background: rgba(99,102,241,0.1); }
+
+    .plan-name { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.25rem; }
+    .plan-price { font-size: 1.25rem; font-weight: 800; color: var(--brand-primary); }
+    .plan-price small { font-size: 0.7rem; font-weight: 500; color: var(--text-muted); }
+    .plan-desc { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+    .terms {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 1rem;
+    }
+    .terms a { color: var(--brand-primary); text-decoration: none; }
+
+    .auth-footer-link { text-align: center; margin-top: 1.25rem; font-size: 0.875rem; color: var(--text-muted); }
+    .auth-footer-link a { color: var(--brand-primary); font-weight: 600; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+
+  <div class="auth-container">
+    <div class="auth-card">
+      <a href="/" class="auth-logo">
+        <div class="auth-logo-icon">⚡</div>
+        <div class="auth-logo-text">Site<span>Flash</span> AI</div>
+      </a>
+
+      <h1 class="auth-title">Crie sua conta grátis</h1>
+      <p class="auth-subtitle">Comece a criar sites profissionais em menos de 60 segundos</p>
+
+      <div class="error-banner" id="errorBanner"></div>
+
+      <form id="registerForm">
+        <div class="form-group">
+          <label class="form-label" for="name">Seu nome completo</label>
+          <input type="text" id="name" class="form-input" placeholder="João Silva" required autocomplete="name">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email</label>
+          <input type="email" id="email" class="form-input" placeholder="joao@empresa.com.br" required autocomplete="email">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Senha</label>
+          <input type="password" id="password" class="form-input" placeholder="Mínimo 6 caracteres" required autocomplete="new-password">
+          <div class="form-hint">Use uma senha forte com letras e números</div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-submit" id="submitBtn">
+          🚀 Criar Conta Grátis
+        </button>
+      </form>
+
+      <div class="terms">
+        Ao criar uma conta você concorda com nossos <a href="#">Termos de Uso</a> e <a href="#">Política de Privacidade</a>
+      </div>
+
+      <div class="auth-footer-link">
+        Já tem conta? <a href="login.html">Fazer login →</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    if (API.Auth.isLoggedIn()) {
+      window.location.href = 'dashboard.html';
+    }
+
+    const form = document.getElementById('registerForm');
+    const errorBanner = document.getElementById('errorBanner');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="loading-spinner"></span> Criando conta...';
+      errorBanner.classList.remove('visible');
+
+      try {
+        const response = await API.Auth.register(name, email, password);
+        
+        API.setToken(response.token);
+        API.setUser(response.user);
+        
+        showToast('Conta criada! Bem-vindo ao SiteFlash AI! 🎉', 'success');
+        
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1000);
+
+      } catch (error) {
+        errorBanner.textContent = error.error || 'Erro ao criar conta. Tente novamente.';
+        errorBanner.classList.add('visible');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '🚀 Criar Conta Grátis';
+      }
+    });
+  </script>
+</body>
+</html>

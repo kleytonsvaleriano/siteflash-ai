@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — SiteFlash AI</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <a href="dashboard.html" class="logo-mark">
+          <div class="logo-icon">⚡</div>
+          <div class="logo-text">Site<span>Flash</span> AI</div>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Menu</div>
+        <a href="dashboard.html" class="nav-item active" id="nav-dashboard">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/></svg>
+          Dashboard
+        </a>
+        <a href="wizard.html" class="nav-item" id="nav-new">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          Criar Novo Site
+        </a>
+
+        <div class="nav-section-label" style="margin-top:1rem;">Conta</div>
+        <a href="#" class="nav-item" id="nav-upgrade" onclick="showUpgradeModal()">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+          Upgrade Pro
+        </a>
+        <button class="nav-item" id="nav-logout" onclick="API.Auth.logout()">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/></svg>
+          Sair
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-card" id="userCard">
+          <div class="user-avatar" id="userAvatar">U</div>
+          <div>
+            <div class="user-name" id="userName">Carregando...</div>
+            <div class="user-plan" id="userPlan">Plano Gratuito</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <!-- TOP BAR -->
+      <header class="top-bar">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <button class="btn btn-icon btn-secondary" id="mobileMenuBtn" onclick="toggleSidebar()" style="display:none;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+          </button>
+          <h1 class="page-title">Dashboard</h1>
+        </div>
+        <div class="top-bar-actions">
+          <a href="wizard.html" class="btn btn-primary">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            Criar Site
+          </a>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <!-- PAYWALL BANNER (free users) -->
+        <div class="paywall-banner" id="paywallBanner" style="display:none;">
+          <div class="paywall-content">
+            <div class="paywall-icon">🚀</div>
+            <div>
+              <div class="paywall-title">Desbloqueie o poder total do SiteFlash AI</div>
+              <div class="paywall-subtitle">Faça upgrade e remova marcas d'água, baixe o código e publique com 1 clique</div>
+              <div class="paywall-features">
+                <div class="paywall-feature"><span>✓</span> Sem marca d'água</div>
+                <div class="paywall-feature"><span>✓</span> Download do código ZIP</div>
+                <div class="paywall-feature"><span>✓</span> Publicação com 1 clique</div>
+                <div class="paywall-feature"><span>✓</span> Projetos ilimitados</div>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-lg" onclick="showUpgradeModal()">
+            ⚡ Fazer Upgrade Pro — R$ 47/mês
+          </button>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(99,102,241,0.15);">🌐</div>
+            <div>
+              <div class="stat-value" id="statTotal">—</div>
+              <div class="stat-label">Sites criados</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(16,185,129,0.15);">✅</div>
+            <div>
+              <div class="stat-value" id="statPublished">—</div>
+              <div class="stat-label">Publicados</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(245,158,11,0.15);">📝</div>
+            <div>
+              <div class="stat-value" id="statDraft">—</div>
+              <div class="stat-label">Rascunhos</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(236,72,153,0.15);">⭐</div>
+            <div>
+              <div class="stat-value" id="statPlan">Free</div>
+              <div class="stat-label">Seu plano</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PROJECTS SECTION -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+          <h2 style="font-size:1.1rem;font-weight:700;">Meus Sites</h2>
+          <a href="wizard.html" class="btn btn-secondary btn-sm">
+            + Novo Site
+          </a>
+        </div>
+
+        <!-- Projects Grid -->
+        <div class="projects-grid" id="projectsGrid">
+          <!-- Loaded dynamically -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState" style="display:none;">
+          <div class="empty-icon">🌐</div>
+          <h3 class="empty-title">Nenhum site ainda</h3>
+          <p class="empty-subtitle">Crie seu primeiro site em menos de 2 minutos. É grátis para começar!</p>
+          <a href="wizard.html" class="btn btn-primary btn-lg">
+            ⚡ Criar Meu Primeiro Site
+          </a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- PREVIEW MODAL -->
+  <div class="modal-overlay" id="previewModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="previewTitle">Preview do Site</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);margin-top:2px;" id="previewSubtitle">Visualização completa</div>
+        </div>
+        <button class="modal-close" onclick="closePreview()">✕</button>
+      </div>
+      <div class="modal-body">
+        <iframe class="preview-iframe" id="previewIframe" src="" title="Preview do site"></iframe>
+      </div>
+      <div class="modal-footer">
+        <div id="previewWatermarkNote" style="font-size:0.8rem;color:var(--text-muted);">
+          ⚠️ Versão com marca d'água (plano gratuito)
+        </div>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+          <button class="btn btn-secondary" onclick="editProject()">✏️ Editar</button>
+          <button class="btn btn-danger btn-sm" id="previewDeleteBtn" onclick="deleteCurrentProject()">🗑️ Excluir</button>
+          <button class="btn btn-primary" onclick="showUpgradeModal()" id="previewUpgradeBtn">
+            ⚡ Desbloquear Site
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UPGRADE MODAL -->
+  <div class="modal-overlay" id="upgradeModal">
+    <div class="modal-box" style="max-width:600px;">
+      <div class="modal-header">
+        <div class="modal-title">⚡ Upgrade para Pro</div>
+        <button class="modal-close" onclick="closeUpgradeModal()">✕</button>
+      </div>
+      <div class="modal-body" style="overflow-y:auto;padding:2rem;">
+        <div style="text-align:center;margin-bottom:2rem;">
+          <div style="font-size:3rem;margin-bottom:1rem;">🚀</div>
+          <h2 style="font-size:1.75rem;margin-bottom:0.5rem;">SiteFlash AI Pro</h2>
+          <p style="color:var(--text-muted);">Desbloqueie tudo e lance sites profissionais em segundos</p>
+        </div>
+
+        <div style="background:var(--bg-3);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.5rem;">
+          <div style="font-size:2.5rem;font-weight:800;color:var(--brand-primary);text-align:center;">
+            R$ 47<small style="font-size:1rem;font-weight:500;color:var(--text-muted)">/mês</small>
+          </div>
+          <div style="text-align:center;color:var(--text-muted);font-size:0.875rem;margin-top:0.25rem;">
+            ou R$ 397/ano (economize 30%)
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:0.875rem;margin-bottom:2rem;">
+          ${[
+            ['✅', 'Sites ilimitados sem marca d\'água', ''],
+            ['✅', 'Download do código fonte (HTML+CSS+JS)', 'ZIP pronto para publicar'],
+            ['✅', 'Publicação com 1 clique', 'Em minutos online'],
+            ['✅', 'Domínio personalizado', 'suaempresa.siteflash.ai'],
+            ['✅', 'Suporte prioritário', 'Resposta em até 24h'],
+            ['✅', 'Atualizações vitalícias', 'Novos templates e recursos'],
+          ].map(([icon, title, sub]) => `
+          <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+            <span style="font-size:1rem;flex-shrink:0;">${icon}</span>
+            <div>
+              <div style="font-weight:600;font-size:0.9rem;">${title}</div>
+              ${sub ? `<div style="font-size:0.8rem;color:var(--text-muted);">${sub}</div>` : ''}
+            </div>
+          </div>
+          `).join('')}
+        </div>
+
+        <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center;" onclick="handleUpgrade()">
+          ⚡ Assinar Pro — R$ 47/mês
+        </button>
+        <div style="text-align:center;font-size:0.8rem;color:var(--text-muted);margin-top:0.75rem;">
+          🔒 Pagamento seguro • Cancele quando quiser
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DELETE CONFIRM MODAL -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal-box" style="max-width:420px;">
+      <div class="modal-header">
+        <div class="modal-title">🗑️ Excluir Projeto</div>
+        <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+      </div>
+      <div style="padding:2rem;">
+        <p style="color:var(--text-muted);margin-bottom:1.5rem;">
+          Tem certeza que deseja excluir <strong id="deleteProjectName" style="color:var(--text-primary);"></strong>? Esta ação não pode ser desfeita.
+        </p>
+        <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+          <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
+          <button class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDelete()">Excluir</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    // Autenticação
+    if (!API.Auth.isLoggedIn()) {
+      window.location.href = 'login.html';
+    }
+
+    let projects = [];
+    let currentProjectId = null;
+
+    // ===== INICIALIZAÇÃO =====
+    const init = async () => {
+      loadUserInfo();
+      await loadProjects();
+    };
+
+    const loadUserInfo = () => {
+      const user = API.getUser();
+      if (!user) return;
+      
+      document.getElementById('userAvatar').textContent = user.name.charAt(0).toUpperCase();
+      document.getElementById('userName').textContent = user.name;
+      document.getElementById('userPlan').textContent = user.plan === 'pro' ? '⭐ Plano Pro' : 'Plano Gratuito';
+      document.getElementById('statPlan').textContent = user.plan === 'pro' ? 'Pro' : 'Free';
+
+      // Mostra banner de upgrade para free users
+      if (user.plan === 'free') {
+        document.getElementById('paywallBanner').style.display = 'flex';
+      }
+    };
+
+    const loadProjects = async () => {
+      try {
+        const response = await API.Projects.list();
+        projects = response.projects || [];
+
+        updateStats();
+        renderProjects();
+      } catch (error) {
+        showToast('Erro ao carregar projetos', 'error');
+      }
+    };
+
+    const updateStats = () => {
+      const total = projects.length;
+      const published = projects.filter(p => p.status === 'published').length;
+      const draft = projects.filter(p => p.status === 'draft').length;
+
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statPublished').textContent = published;
+      document.getElementById('statDraft').textContent = draft;
+    };
+
+    const renderProjects = () => {
+      const grid = document.getElementById('projectsGrid');
+      const emptyState = document.getElementById('emptyState');
+
+      if (projects.length === 0) {
+        grid.style.display = 'none';
+        emptyState.style.display = 'flex';
+        return;
+      }
+
+      grid.style.display = 'grid';
+      emptyState.style.display = 'none';
+
+      grid.innerHTML = projects.map(project => `
+        <div class="project-card" id="project-${project.id}">
+          <div class="project-preview">
+            <div class="project-preview-placeholder">
+              <span class="project-niche-icon">${getNicheEmoji(project.niche)}</span>
+              <span>${project.company_name || 'Sem nome'}</span>
+            </div>
+          </div>
+          <div class="project-body">
+            <div class="project-header">
+              <div class="project-name">${escapeHtmlDash(project.name)}</div>
+              ${getStatusBadge(project.status)}
+            </div>
+            <div class="project-meta">
+              ${project.niche ? `<span>${getNicheLabel(project.niche)}</span>` : ''}
+              ${project.city ? `<span>📍 ${escapeHtmlDash(project.city)}</span>` : ''}
+              <span>🗓️ ${formatDate(project.updated_at)}</span>
+            </div>
+            <div class="project-actions">
+              <a href="wizard.html?id=${project.id}" class="btn btn-secondary btn-sm" style="flex:1">✏️ Editar</a>
+              <button class="btn btn-primary btn-sm" style="flex:1" onclick="openPreview('${project.id}', '${escapeHtmlDash(project.name)}')">👁️ Preview</button>
+              <button class="btn btn-icon btn-danger" onclick="openDeleteModal('${project.id}', '${escapeHtmlDash(project.name)}')" title="Excluir">🗑️</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    };
+
+    // ===== PREVIEW =====
+    const openPreview = (id, name) => {
+      currentProjectId = id;
+      const user = API.getUser();
+      
+      document.getElementById('previewTitle').textContent = name;
+      document.getElementById('previewIframe').src = API.Projects.previewUrl(id) + `#token=${API.getToken()}`;
+      
+      // Busca o token e injeta via header não é possível via iframe src
+      // Usamos abordagem de proxy: o backend aceita token via query param para preview
+      document.getElementById('previewIframe').src = `http://localhost:3001/api/projects/${id}/preview?_t=${API.getToken()}`;
+      
+      // Mostra/esconde botão de upgrade
+      const isProUser = user && user.plan !== 'free';
+      document.getElementById('previewUpgradeBtn').style.display = isProUser ? 'none' : 'flex';
+      document.getElementById('previewWatermarkNote').style.display = isProUser ? 'none' : 'block';
+
+      document.getElementById('previewModal').classList.add('open');
+    };
+
+    const closePreview = () => {
+      document.getElementById('previewModal').classList.remove('open');
+      document.getElementById('previewIframe').src = '';
+      currentProjectId = null;
+    };
+
+    const editProject = () => {
+      if (currentProjectId) {
+        window.location.href = `wizard.html?id=${currentProjectId}`;
+      }
+    };
+
+    // ===== DELETE =====
+    let deleteTargetId = null;
+
+    const openDeleteModal = (id, name) => {
+      deleteTargetId = id;
+      document.getElementById('deleteProjectName').textContent = name;
+      document.getElementById('deleteModal').classList.add('open');
+    };
+
+    const closeDeleteModal = () => {
+      document.getElementById('deleteModal').classList.remove('open');
+      deleteTargetId = null;
+    };
+
+    const deleteCurrentProject = () => {
+      closePreview();
+      if (currentProjectId) {
+        const project = projects.find(p => p.id === currentProjectId);
+        openDeleteModal(currentProjectId, project?.name || 'este projeto');
+      }
+    };
+
+    const confirmDelete = async () => {
+      if (!deleteTargetId) return;
+      
+      document.getElementById('confirmDeleteBtn').disabled = true;
+      document.getElementById('confirmDeleteBtn').textContent = 'Excluindo...';
+
+      try {
+        await API.Projects.delete(deleteTargetId);
+        showToast('Projeto excluído!', 'success');
+        closeDeleteModal();
+        await loadProjects();
+      } catch (error) {
+        showToast(error.error || 'Erro ao excluir projeto', 'error');
+        document.getElementById('confirmDeleteBtn').disabled = false;
+        document.getElementById('confirmDeleteBtn').textContent = 'Excluir';
+      }
+    };
+
+    // ===== UPGRADE =====
+    const showUpgradeModal = () => {
+      document.getElementById('upgradeModal').classList.add('open');
+    };
+
+    const closeUpgradeModal = () => {
+      document.getElementById('upgradeModal').classList.remove('open');
+    };
+
+    const handleUpgrade = () => {
+      // Integrar com gateway de pagamento (Stripe, Hotmart, etc.)
+      showToast('Redirecionando para pagamento... (integração a configurar)', 'info');
+      // window.location.href = 'https://seu-checkout.com/pro';
+    };
+
+    // ===== SIDEBAR MOBILE =====
+    const toggleSidebar = () => {
+      document.getElementById('sidebar').classList.toggle('open');
+    };
+
+    // Responsive: show hamburger on mobile
+    const checkMobile = () => {
+      const btn = document.getElementById('mobileMenuBtn');
+      if (window.innerWidth <= 1024) {
+        btn.style.display = 'flex';
+      } else {
+        btn.style.display = 'none';
+        document.getElementById('sidebar').classList.remove('open');
+      }
+    };
+
+    window.addEventListener('resize', checkMobile);
+    checkMobile();
+
+    // Fecha modal com ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closePreview();
+        closeUpgradeModal();
+        closeDeleteModal();
+      }
+    });
+
+    // Fecha modal clicando fora
+    document.getElementById('previewModal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closePreview();
+    });
+    document.getElementById('upgradeModal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeUpgradeModal();
+    });
+    document.getElementById('deleteModal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeDeleteModal();
+    });
+
+    // Helpers
+    const getNicheEmoji = (niche) => {
+      const map = {
+        restaurant:'🍽️', dentist:'🦷', lawyer:'⚖️', barbershop:'✂️',
+        salon:'💇', gym:'💪', clinic:'🏥', real_estate:'🏠', tech:'💻', store:'🛒'
+      };
+      return map[niche] || '🌐';
+    };
+
+    const escapeHtmlDash = (str) => {
+      if (!str) return '';
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    };
+
+    // Boot
+    init();
+  </script>
+</body>
+</html>

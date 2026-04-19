@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Criar Site — SiteFlash AI</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* Wizard specific overrides */
+    .wizard-header {
+      background: var(--bg-1);
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .wizard-body {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 6rem;
+    }
+
+    .step-progress {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 3rem;
+    }
+
+    .step-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      padding: 0.4rem 0.875rem 0.4rem 0.4rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: var(--transition);
+    }
+
+    .step-pill.active {
+      border-color: var(--brand-primary);
+      background: rgba(99,102,241,0.15);
+      color: var(--text-primary);
+    }
+
+    .step-pill.done {
+      border-color: var(--success);
+      background: rgba(16,185,129,0.1);
+      color: var(--success);
+    }
+
+    .step-pill-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--bg-4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .step-pill.active .step-pill-num {
+      background: var(--brand-primary);
+      color: white;
+    }
+
+    .step-pill.done .step-pill-num {
+      background: var(--success);
+      color: white;
+    }
+
+    .step-connector {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      margin: 0 0.5rem;
+      min-width: 20px;
+    }
+
+    .step-connector.done { background: var(--brand-primary); }
+
+    .panel-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .panel-subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+    }
+
+    .card-form {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 2rem;
+    }
+
+    /* Generate button */
+    .generate-btn {
+      background: linear-gradient(135deg, #10b981, #059669) !important;
+      box-shadow: 0 4px 20px rgba(16,185,129,0.3) !important;
+      font-size: 1.1rem;
+      padding: 1rem 2.5rem;
+    }
+
+    .generate-btn:hover {
+      box-shadow: 0 6px 30px rgba(16,185,129,0.5) !important;
+    }
+
+    /* Review summary */
+    .review-item {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .review-item:last-child { border-bottom: none; }
+    .review-label { color: var(--text-muted); font-size: 0.85rem; min-width: 140px; flex-shrink: 0; }
+    .review-value { font-weight: 500; color: var(--text-primary); font-size: 0.9rem; }
+
+    /* Progress animation */
+    .generating-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(8,11,20,0.92);
+      backdrop-filter: blur(16px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 2rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .generating-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .generating-spinner {
+      width: 80px;
+      height: 80px;
+      border: 4px solid rgba(99,102,241,0.2);
+      border-top-color: var(--brand-primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .generating-text {
+      font-size: 1.25rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .generating-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      text-align: left;
+      min-width: 280px;
+    }
+
+    .gen-step {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      transition: var(--transition);
+    }
+
+    .gen-step.done { color: var(--success); }
+    .gen-step.active { color: var(--text-primary); }
+
+    .gen-step-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--bg-3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      flex-shrink: 0;
+    }
+
+    .gen-step.done .gen-step-icon { background: var(--success); color: white; }
+    .gen-step.active .gen-step-icon { 
+      background: var(--brand-primary); 
+      animation: pulse 1s infinite;
+    }
+  </style>
+</head>
+<body>
+  <!-- WIZARD HEADER -->
+  <header class="wizard-header">
+    <a href="dashboard.html" class="logo-mark" style="text-decoration:none;">
+      <div class="logo-icon" style="width:32px;height:32px;font-size:1rem;border-radius:8px;">⚡</div>
+      <div class="logo-text" style="font-size:1rem;">Site<span>Flash</span> AI</div>
+    </a>
+    <div style="font-size:0.9rem;color:var(--text-muted);" id="autoSaveIndicator">
+      <!-- Auto-save status -->
+    </div>
+    <a href="dashboard.html" class="btn btn-secondary btn-sm">✕ Cancelar</a>
+  </header>
+
+  <!-- WIZARD BODY -->
+  <div class="wizard-body">
+    <!-- STEP PROGRESS -->
+    <div class="step-progress" id="stepProgress">
+      <div class="step-pill active" id="pill-1">
+        <div class="step-pill-num">1</div>
+        Nicho
+      </div>
+      <div class="step-connector" id="conn-1"></div>
+      <div class="step-pill" id="pill-2">
+        <div class="step-pill-num">2</div>
+        Empresa
+      </div>
+      <div class="step-connector" id="conn-2"></div>
+      <div class="step-pill" id="pill-3">
+        <div class="step-pill-num">3</div>
+        Design
+      </div>
+      <div class="step-connector" id="conn-3"></div>
+      <div class="step-pill" id="pill-4">
+        <div class="step-pill-num">4</div>
+        Serviços
+      </div>
+      <div class="step-connector" id="conn-4"></div>
+      <div class="step-pill" id="pill-5">
+        <div class="step-pill-num">5</div>
+        Gerar
+      </div>
+    </div>
+
+    <!-- PANEL 1: NICHO & OBJETIVO -->
+    <div class="wizard-panel active" id="panel-1">
+      <h2 class="panel-title">Qual é o seu nicho?</h2>
+      <p class="panel-subtitle">Selecione o segmento do seu negócio para que o sistema gere o conteúdo ideal</p>
+
+      <div class="card-form">
+        <div class="form-group">
+          <label class="form-label">Segmento do negócio *</label>
+          <div class="nicho-grid" id="nichoGrid">
+            <!-- Filled dynamically -->
+            <div style="color:var(--text-muted);font-size:0.9rem;padding:1rem;">Carregando nichos...</div>
+          </div>
+          <input type="hidden" id="selectedNiche">
+        </div>
+
+        <div class="form-group" style="margin-top:1.5rem;">
+          <label class="form-label">Objetivo principal do site</label>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;">
+            <div class="nicho-option" id="obj-leads" onclick="selectObjective('leads')">
+              <span class="nicho-emoji">🎯</span>
+              <div class="nicho-label">Captar Leads</div>
+            </div>
+            <div class="nicho-option" id="obj-institutional" onclick="selectObjective('institutional')">
+              <span class="nicho-emoji">🏢</span>
+              <div class="nicho-label">Institucional</div>
+            </div>
+            <div class="nicho-option" id="obj-sales" onclick="selectObjective('sales')">
+              <span class="nicho-emoji">💰</span>
+              <div class="nicho-label">Vender Online</div>
+            </div>
+          </div>
+          <input type="hidden" id="selectedObjective" value="leads">
+        </div>
+      </div>
+
+      <div class="wizard-nav">
+        <a href="dashboard.html" class="btn btn-secondary">← Voltar</a>
+        <button class="btn btn-primary" onclick="goToStep(2)">
+          Próximo: Dados da Empresa →
+        </button>
+      </div>
+    </div>
+
+    <!-- PANEL 2: DADOS DA EMPRESA -->
+    <div class="wizard-panel" id="panel-2">
+      <h2 class="panel-title">Dados da empresa</h2>
+      <p class="panel-subtitle">Informações básicas que serão usadas para personalizar todo o site</p>
+
+      <div class="card-form">
+        <div class="form-group">
+          <label class="form-label" for="companyName">Nome da empresa *</label>
+          <input type="text" id="companyName" class="form-input" placeholder="Ex: Restaurante do Chef João">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="city">Cidade / Localização</label>
+          <input type="text" id="city" class="form-input" placeholder="Ex: São Paulo - SP">
+          <div class="form-hint">Aparecerá nos textos e no SEO do site</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="mapsLink">Link do Google Maps (opcional)</label>
+          <input type="url" id="mapsLink" class="form-input" placeholder="Cole o link compartilhado do Google Maps">
+          <div class="form-hint">cole o link do Google Maps da sua empresa para incorporar o mapa no site</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Logo da empresa (opcional)</label>
+          <div class="upload-area" id="logoUploadArea">
+            <input type="file" id="logoFile" accept="image/*" onchange="handleLogoUpload(event)">
+            <div id="logoUploadContent">
+              <div style="font-size:2rem;margin-bottom:0.5rem;">🖼️</div>
+              <div style="font-weight:600;margin-bottom:0.25rem;">Clique ou arraste seu logo</div>
+              <div style="font-size:0.8rem;color:var(--text-muted);">PNG, JPG ou SVG — máx. 5MB</div>
+            </div>
+          </div>
+          <input type="hidden" id="logoUrl">
+        </div>
+      </div>
+
+      <div class="wizard-nav">
+        <button class="btn btn-secondary" onclick="goToStep(1)">← Voltar</button>
+        <button class="btn btn-primary" onclick="goToStep(3)">
+          Próximo: Design →
+        </button>
+      </div>
+    </div>
+
+    <!-- PANEL 3: DESIGN -->
+    <div class="wizard-panel" id="panel-3">
+      <h2 class="panel-title">Escolha o estilo visual</h2>
+      <p class="panel-subtitle">A identidade visual será gerada automaticamente de acordo com sua escolha</p>
+
+      <div class="card-form">
+        <!-- Estilos -->
+        <div class="form-group">
+          <label class="form-label">Estilo do site</label>
+          <div class="style-grid">
+            <div class="style-option selected" id="style-modern" onclick="selectStyle('modern')">
+              <div class="style-preview" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">⚡</div>
+              <div class="style-name">
+                Moderno
+                <span>✓</span>
+              </div>
+            </div>
+            <div class="style-option" id="style-elegant" onclick="selectStyle('elegant')">
+              <div class="style-preview" style="background:linear-gradient(135deg,#1d3557,#457b9d);">👑</div>
+              <div class="style-name">Elegante <span></span></div>
+            </div>
+            <div class="style-option" id="style-aggressive" onclick="selectStyle('aggressive')">
+              <div class="style-preview" style="background:linear-gradient(135deg,#dc2626,#991b1b);">🔥</div>
+              <div class="style-name">Agressivo <span></span></div>
+            </div>
+            <div class="style-option" id="style-minimal" onclick="selectStyle('minimal')">
+              <div class="style-preview" style="background:linear-gradient(135deg,#000,#333);">◻</div>
+              <div class="style-name">Minimalista <span></span></div>
+            </div>
+          </div>
+          <input type="hidden" id="selectedStyle" value="modern">
+        </div>
+
+        <!-- Cor primária customizada -->
+        <div class="form-group" style="margin-top:1.5rem;">
+          <label class="form-label">Cor principal (opcional)</label>
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <div class="palette-grid" id="paletteGrid">
+              <!-- Swatches predefinidos -->
+              <div class="palette-swatch selected" style="background:#6366f1" data-color="#6366f1" onclick="selectColor('#6366f1', this)" title="Índigo"></div>
+              <div class="palette-swatch" style="background:#ec4899" data-color="#ec4899" onclick="selectColor('#ec4899', this)" title="Rosa"></div>
+              <div class="palette-swatch" style="background:#10b981" data-color="#10b981" onclick="selectColor('#10b981', this)" title="Verde"></div>
+              <div class="palette-swatch" style="background:#f59e0b" data-color="#f59e0b" onclick="selectColor('#f59e0b', this)" title="Âmbar"></div>
+              <div class="palette-swatch" style="background:#0ea5e9" data-color="#0ea5e9" onclick="selectColor('#0ea5e9', this)" title="Azul"></div>
+              <div class="palette-swatch" style="background:#dc2626" data-color="#dc2626" onclick="selectColor('#dc2626', this)" title="Vermelho"></div>
+              <div class="palette-swatch" style="background:#7c3aed" data-color="#7c3aed" onclick="selectColor('#7c3aed', this)" title="Roxo"></div>
+              <div class="palette-swatch" style="background:#0f172a" data-color="#0f172a" onclick="selectColor('#0f172a', this)" title="Dark"></div>
+            </div>
+            <div>
+              <input type="color" id="customColor" value="#6366f1" style="width:48px;height:48px;border:2px solid var(--border);border-radius:var(--radius);cursor:pointer;background:none;padding:2px;" onchange="selectColor(this.value, null)">
+            </div>
+          </div>
+          <input type="hidden" id="selectedColor" value="#6366f1">
+        </div>
+      </div>
+
+      <div class="wizard-nav">
+        <button class="btn btn-secondary" onclick="goToStep(2)">← Voltar</button>
+        <button class="btn btn-primary" onclick="goToStep(4)">
+          Próximo: Serviços →
+        </button>
+      </div>
+    </div>
+
+    <!-- PANEL 4: SERVIÇOS -->
+    <div class="wizard-panel" id="panel-4">
+      <h2 class="panel-title">Seus principais serviços</h2>
+      <p class="panel-subtitle">Adicione os serviços que serão exibidos no site. A IA sugerirá baseado no seu nicho.</p>
+
+      <div class="card-form">
+        <div class="form-group">
+          <label class="form-label">Serviços oferecidos</label>
+          <div class="tags-input-container" id="tagsContainer" onclick="focusTagInput()">
+            <input 
+              type="text" 
+              class="tags-text-input" 
+              id="tagInput" 
+              placeholder="Digite um serviço e pressione Enter..."
+              onkeydown="handleTagInput(event)"
+            >
+          </div>
+          <div class="form-hint">Pressione Enter ou vírgula para adicionar. Máximo 8 serviços.</div>
+        </div>
+
+        <div id="suggestionsSection">
+          <div class="form-label" style="margin-bottom:0.5rem;">Sugestões para o seu nicho:</div>
+          <div class="service-suggestions" id="suggestionChips">
+            <!-- Filled dynamically based on niche -->
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-nav">
+        <button class="btn btn-secondary" onclick="goToStep(3)">← Voltar</button>
+        <button class="btn btn-primary" onclick="goToStep(5)">
+          Revisar e Gerar →
+        </button>
+      </div>
+    </div>
+
+    <!-- PANEL 5: REVIEW & GENERATE -->
+    <div class="wizard-panel" id="panel-5">
+      <h2 class="panel-title">Tudo pronto para gerar! 🚀</h2>
+      <p class="panel-subtitle">Revise os dados abaixo e clique em "Gerar Site" para criar seu site em segundos</p>
+
+      <div class="card-form" id="reviewSummary">
+        <!-- Filled dynamically -->
+      </div>
+
+      <div style="margin-top:1.5rem;padding:1.5rem;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:var(--radius-lg);">
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;">
+          <span style="font-size:1.5rem;">⚡</span>
+          <div>
+            <div style="font-weight:700;">Geração Automática</div>
+            <div style="font-size:0.85rem;color:var(--text-muted);">O site será criado em segundos com IA</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-size:0.8rem;color:var(--text-secondary);">
+          <div>✓ Hero com headline de conversão</div>
+          <div>✓ Seção de serviços</div>
+          <div>✓ Seção Sobre a Empresa</div>
+          <div>✓ Depoimentos de clientes</div>
+          <div>✓ Formulário de contato</div>
+          <div>✓ SEO básico configurado</div>
+          <div>✓ Design responsivo (mobile)</div>
+          <div>✓ Mapa integrado (se informado)</div>
+        </div>
+      </div>
+
+      <div class="wizard-nav">
+        <button class="btn btn-secondary" onclick="goToStep(4)">← Voltar</button>
+        <button class="btn btn-primary generate-btn" id="generateBtn" onclick="generateSite()">
+          ⚡ Gerar Meu Site Agora
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GENERATING OVERLAY -->
+  <div class="generating-overlay" id="generatingOverlay">
+    <div class="generating-spinner"></div>
+    <div class="generating-text">Criando seu site com IA...</div>
+    <div class="generating-steps">
+      <div class="gen-step active" id="genStep1">
+        <div class="gen-step-icon">1</div>
+        Analisando nicho e segmento...
+      </div>
+      <div class="gen-step" id="genStep2">
+        <div class="gen-step-icon">2</div>
+        Gerando textos e headlines...
+      </div>
+      <div class="gen-step" id="genStep3">
+        <div class="gen-step-icon">3</div>
+        Aplicando design e cores...
+      </div>
+      <div class="gen-step" id="genStep4">
+        <div class="gen-step-icon">4</div>
+        Montando estrutura HTML...
+      </div>
+      <div class="gen-step" id="genStep5">
+        <div class="gen-step-icon">5</div>
+        Finalizando e salvando...
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    if (!API.Auth.isLoggedIn()) {
+      window.location.href = 'login.html';
+    }
+
+    // ===== STATE =====
+    let currentStep = 1;
+    let projectId = null;
+    let selectedNiche = '';
+    let selectedObjective = 'leads';
+    let selectedStyle = 'modern';
+    let selectedColor = '#6366f1';
+    let tags = [];
+    let nicheData = {};
+
+    // ===== INIT =====
+    const init = async () => {
+      // Carrega nicho grid
+      await loadNiches();
+      
+      // Verifica se editando projeto existente
+      const urlParams = new URLSearchParams(window.location.search);
+      const editId = urlParams.get('id');
+      if (editId) {
+        projectId = editId;
+        await loadExistingProject(editId);
+      }
+
+      // Seleciona objetivo padrão
+      selectObjective('leads');
+    };
+
+    const loadNiches = async () => {
+      try {
+        const response = await API.Projects.getNiches();
+        const niches = response.niches;
+        
+        // Salva data local para sugestões depois
+        niches.forEach(n => { nicheData[n.id] = n; });
+
+        document.getElementById('nichoGrid').innerHTML = niches.map(n => `
+          <div class="nicho-option" id="niche-${n.id}" onclick="selectNiche('${n.id}')">
+            <span class="nicho-emoji">${n.emoji}</span>
+            <div class="nicho-label">${n.label}</div>
+          </div>
+        `).join('');
+      } catch (error) {
+        document.getElementById('nichoGrid').innerHTML = '<div style="color:var(--danger)">Erro ao carregar nichos. Recarregue a página.</div>';
+      }
+    };
+
+    const loadExistingProject = async (id) => {
+      try {
+        const response = await API.Projects.get(id);
+        const p = response.project;
+
+        if (p.niche) selectNiche(p.niche);
+        if (p.objective) selectObjective(p.objective);
+        if (p.company_name) document.getElementById('companyName').value = p.company_name;
+        if (p.city) document.getElementById('city').value = p.city;
+        if (p.maps_link) document.getElementById('mapsLink').value = p.maps_link;
+        if (p.logo_url) {
+          document.getElementById('logoUrl').value = p.logo_url;
+          showLogoPreview(p.logo_url);
+        }
+        if (p.style) selectStyle(p.style);
+        if (p.color_palette?.primary) selectColor(p.color_palette.primary, null);
+        if (p.services && p.services.length > 0) {
+          p.services.forEach(s => addTag(typeof s === 'string' ? s : s.name));
+        }
+
+        document.getElementById('autoSaveIndicator').textContent = '✓ Editando projeto existente';
+      } catch (error) {
+        console.error('Error loading project:', error);
+      }
+    };
+
+    // ===== STEP NAVIGATION =====
+    const goToStep = async (step) => {
+      // Validação antes de avançar
+      if (step > currentStep) {
+        if (!validateStep(currentStep)) return;
+        await autoSave(step);
+      }
+
+      // Atualiza pills
+      for (let i = 1; i <= 5; i++) {
+        const pill = document.getElementById(`pill-${i}`);
+        const conn = document.getElementById(`conn-${i}`);
+        
+        pill.classList.remove('active', 'done');
+        if (conn) conn.classList.remove('done');
+        
+        if (i < step) { 
+          pill.classList.add('done');
+          if (conn) conn.classList.add('done');
+          pill.querySelector('.step-pill-num').textContent = '✓';
+        } else if (i === step) { 
+          pill.classList.add('active');
+          pill.querySelector('.step-pill-num').textContent = i;
+        } else {
+          pill.querySelector('.step-pill-num').textContent = i;
+        }
+      }
+
+      // Esconde todos os painéis
+      document.querySelectorAll('.wizard-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById(`panel-${step}`).classList.add('active');
+
+      currentStep = step;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Comportamentos especiais por step
+      if (step === 4) loadServiceSuggestions();
+      if (step === 5) buildReviewSummary();
+    };
+
+    const validateStep = (step) => {
+      if (step === 1) {
+        if (!selectedNiche) {
+          showToast('Selecione um nicho para continuar', 'error');
+          return false;
+        }
+      }
+      if (step === 2) {
+        const name = document.getElementById('companyName').value.trim();
+        if (!name) {
+          showToast('Informe o nome da empresa', 'error');
+          document.getElementById('companyName').focus();
+          return false;
+        }
+      }
+      return true;
+    };
+
+    // ===== AUTO-SAVE =====
+    const autoSave = async (nextStep) => {
+      const indicator = document.getElementById('autoSaveIndicator');
+      indicator.textContent = '💾 Salvando...';
+
+      try {
+        const data = collectFormData();
+
+        if (!projectId) {
+          // Cria projeto se ainda não existe
+          const name = data.company_name || `Novo Site ${new Date().toLocaleDateString('pt-BR')}`;
+          const created = await API.Projects.create(name);
+          projectId = created.project.id;
+          // Atualiza URL sem recarregar
+          window.history.replaceState({}, '', `?id=${projectId}`);
+        }
+
+        await API.Projects.update(projectId, data);
+        indicator.textContent = '✓ Salvo automaticamente';
+        setTimeout(() => { indicator.textContent = ''; }, 2000);
+      } catch (error) {
+        indicator.textContent = '⚠️ Erro ao salvar';
+        if (error.upgrade_required) {
+          showToast('Limite de projetos atingido. Faça upgrade!', 'error');
+        } else {
+          showToast(error.error || 'Erro ao salvar', 'error');
+        }
+      }
+    };
+
+    const collectFormData = () => ({
+      niche: selectedNiche,
+      objective: selectedObjective,
+      company_name: document.getElementById('companyName').value.trim(),
+      city: document.getElementById('city').value.trim(),
+      maps_link: document.getElementById('mapsLink').value.trim(),
+      logo_url: document.getElementById('logoUrl').value,
+      style: selectedStyle,
+      color_palette: {
+        primary: selectedColor,
+        secondary: adjustColor(selectedColor, -20),
+        accent: '#ec4899',
+        bg: selectedStyle === 'elegant' || selectedStyle === 'minimal' ? '#ffffff' : '#0f172a',
+        surface: selectedStyle === 'elegant' || selectedStyle === 'minimal' ? '#f8fafc' : '#1e293b',
+        text: selectedStyle === 'elegant' || selectedStyle === 'minimal' ? '#1e293b' : '#f8fafc',
+        textMuted: selectedStyle === 'elegant' || selectedStyle === 'minimal' ? '#64748b' : '#94a3b8',
+      },
+      services: tags,
+      name: document.getElementById('companyName').value.trim() || `Site ${new Date().toLocaleDateString('pt-BR')}`
+    });
+
+    // Simples ajuste de cor
+    const adjustColor = (hex, amount) => {
+      const num = parseInt(hex.replace('#', ''), 16);
+      const r = Math.min(255, Math.max(0, (num >> 16) + amount));
+      const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount));
+      const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount));
+      return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+    };
+
+    // ===== NICHE SELECTION =====
+    const selectNiche = (niche) => {
+      selectedNiche = niche;
+      document.getElementById('selectedNiche').value = niche;
+      document.querySelectorAll('.nicho-option[id^="niche-"]').forEach(el => el.classList.remove('selected'));
+      const el = document.getElementById(`niche-${niche}`);
+      if (el) el.classList.add('selected');
+    };
+
+    const selectObjective = (obj) => {
+      selectedObjective = obj;
+      document.getElementById('selectedObjective').value = obj;
+      ['leads', 'institutional', 'sales'].forEach(o => {
+        document.getElementById(`obj-${o}`)?.classList.remove('selected');
+      });
+      document.getElementById(`obj-${obj}`)?.classList.add('selected');
+    };
+
+    // ===== STYLE SELECTION =====
+    const selectStyle = (style) => {
+      selectedStyle = style;
+      document.getElementById('selectedStyle').value = style;
+      document.querySelectorAll('.style-option').forEach(el => {
+        el.classList.remove('selected');
+        el.querySelector('.style-name span').textContent = '';
+      });
+      const el = document.getElementById(`style-${style}`);
+      if (el) {
+        el.classList.add('selected');
+        el.querySelector('.style-name span').textContent = '✓';
+      }
+    };
+
+    // ===== COLOR SELECTION =====
+    const selectColor = (color, swatch) => {
+      selectedColor = color;
+      document.getElementById('selectedColor').value = color;
+      document.getElementById('customColor').value = color;
+      
+      document.querySelectorAll('.palette-swatch').forEach(s => s.classList.remove('selected'));
+      if (swatch) swatch.classList.add('selected');
+    };
+
+    // ===== LOGO UPLOAD =====
+    const handleLogoUpload = async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const area = document.getElementById('logoUploadArea');
+      const content = document.getElementById('logoUploadContent');
+      content.innerHTML = '<div class="loading-spinner"></div>';
+
+      try {
+        // Se ainda não tem projeto, cria um temporário
+        if (!projectId) {
+          const name = document.getElementById('companyName').value.trim() || 'Novo Site';
+          const created = await API.Projects.create(name);
+          projectId = created.project.id;
+          window.history.replaceState({}, '', `?id=${projectId}`);
+        }
+
+        const response = await API.Upload.single(file);
+        document.getElementById('logoUrl').value = response.url;
+        showLogoPreview(`http://localhost:3001${response.url}`);
+        showToast('Logo enviado!', 'success');
+      } catch (error) {
+        showToast(error.error || 'Erro ao enviar logo', 'error');
+        content.innerHTML = `
+          <div style="font-size:2rem;margin-bottom:0.5rem;">🖼️</div>
+          <div style="font-weight:600;margin-bottom:0.25rem;">Clique ou arraste seu logo</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">PNG, JPG ou SVG — máx. 5MB</div>
+        `;
+      }
+    };
+
+    const showLogoPreview = (url) => {
+      document.getElementById('logoUploadContent').innerHTML = `
+        <img src="${url}" alt="Logo" style="max-height:80px;max-width:200px;object-fit:contain;border-radius:8px;">
+        <div style="font-size:0.8rem;color:var(--success);margin-top:0.5rem;">✓ Logo carregado</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);">Clique para trocar</div>
+      `;
+    };
+
+    // ===== TAGS (SERVICES) =====
+    const focusTagInput = () => document.getElementById('tagInput').focus();
+
+    const handleTagInput = (event) => {
+      if (event.key === 'Enter' || event.key === ',') {
+        event.preventDefault();
+        const value = event.target.value.trim().replace(/,$/, '');
+        if (value) addTag(value);
+        event.target.value = '';
+      }
+    };
+
+    const addTag = (text) => {
+      if (tags.length >= 8) {
+        showToast('Máximo de 8 serviços', 'error');
+        return;
+      }
+      if (tags.includes(text)) return;
+      
+      tags.push(text);
+      renderTags();
+    };
+
+    const removeTag = (text) => {
+      tags = tags.filter(t => t !== text);
+      renderTags();
+    };
+
+    const renderTags = () => {
+      const container = document.getElementById('tagsContainer');
+      const existing = container.querySelectorAll('.tag');
+      existing.forEach(t => t.remove());
+
+      const input = document.getElementById('tagInput');
+      
+      tags.forEach(tag => {
+        const el = document.createElement('div');
+        el.className = 'tag';
+        el.innerHTML = `
+          <span>${escHtml(tag)}</span>
+          <button class="tag-remove" onclick="removeTag('${escHtml(tag)}')" type="button">×</button>
+        `;
+        container.insertBefore(el, input);
+      });
+    };
+
+    const escHtml = (str) => String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+    const loadServiceSuggestions = () => {
+      if (!selectedNiche || !nicheData[selectedNiche]) return;
+      
+      const suggestions = nicheData[selectedNiche].services || [];
+      const container = document.getElementById('suggestionChips');
+      
+      container.innerHTML = suggestions.map(s => `
+        <div class="suggestion-chip" onclick="addTag('${escHtml(s)}'); this.style.display='none'">
+          + ${escHtml(s)}
+        </div>
+      `).join('');
+
+      // Esconde chips já adicionados
+      tags.forEach(tag => {
+        container.querySelectorAll('.suggestion-chip').forEach(chip => {
+          if (chip.textContent.trim() === `+ ${tag}`) chip.style.display = 'none';
+        });
+      });
+    };
+
+    // ===== REVIEW SUMMARY =====
+    const buildReviewSummary = () => {
+      const companyName = document.getElementById('companyName').value.trim();
+      const city = document.getElementById('city').value.trim();
+      const mapsLink = document.getElementById('mapsLink').value.trim();
+
+      const nicheLabel = nicheData[selectedNiche]?.label || selectedNiche;
+      const objLabels = { leads: '🎯 Captar Leads', institutional: '🏢 Institucional', sales: '💰 Vender Online' };
+      const styleLabels = { modern: '⚡ Moderno', elegant: '👑 Elegante', aggressive: '🔥 Agressivo', minimal: '◻ Minimalista' };
+
+      document.getElementById('reviewSummary').innerHTML = `
+        <div class="review-item">
+          <div class="review-label">Nicho</div>
+          <div class="review-value">${nicheData[selectedNiche]?.emoji || ''} ${nicheLabel}</div>
+        </div>
+        <div class="review-item">
+          <div class="review-label">Objetivo</div>
+          <div class="review-value">${objLabels[selectedObjective] || selectedObjective}</div>
+        </div>
+        <div class="review-item">
+          <div class="review-label">Empresa</div>
+          <div class="review-value">${companyName || '<span style="color:var(--danger)">Não informado</span>'}</div>
+        </div>
+        <div class="review-item">
+          <div class="review-label">Cidade</div>
+          <div class="review-value">${city || '<span style="color:var(--text-muted)">Não informado</span>'}</div>
+        </div>
+        <div class="review-item">
+          <div class="review-label">Google Maps</div>
+          <div class="review-value">${mapsLink ? '✓ Configurado' : '<span style="color:var(--text-muted)">Não informado</span>'}</div>
+        </div>
+        <div class="review-item">
+          <div class="review-label">Estilo</div>
+          <div class="review-value">
+            ${styleLabels[selectedStyle]}
+            <span style="display:inline-block;width:16px;height:16px;background:${selectedColor};border-radius:50%;margin-left:0.5rem;vertical-align:middle;border:1px solid rgba(255,255,255,0.2)"></span>
+          </div>
+        </div>
+        <div class="review-item">
+          <div class="review-label">Serviços</div>
+          <div class="review-value">
+            ${tags.length > 0 
+              ? tags.map(t => `<span style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:var(--brand-primary);padding:0.2rem 0.6rem;border-radius:9999px;font-size:0.8rem;margin:0.15rem;display:inline-block">${escHtml(t)}</span>`).join('')
+              : '<span style="color:var(--text-muted)">Serão sugeridos pelo nicho</span>'
+            }
+          </div>
+        </div>
+      `;
+    };
+
+    // ===== GENERATE SITE =====
+    const generateSite = async () => {
+      if (!projectId) {
+        showToast('Erro: projeto não encontrado. Volte ao passo 2.', 'error');
+        return;
+      }
+
+      // Salva ultima vez
+      await autoSave(5);
+
+      // Mostra overlay de geração
+      const overlay = document.getElementById('generatingOverlay');
+      overlay.classList.add('show');
+
+      // Anima os steps de geração
+      const stepDelays = [0, 800, 1600, 2400, 3000];
+      const steps = [1, 2, 3, 4, 5];
+      
+      steps.forEach((s, i) => {
+        setTimeout(() => {
+          // Marca anterior como done
+          if (i > 0) {
+            const prev = document.getElementById(`genStep${steps[i-1]}`);
+            prev.classList.remove('active');
+            prev.classList.add('done');
+            prev.querySelector('.gen-step-icon').textContent = '✓';
+          }
+          // Marca atual como active
+          const current = document.getElementById(`genStep${s}`);
+          current.classList.add('active');
+        }, stepDelays[i]);
+      });
+
+      try {
+        // Chama API de geração
+        const response = await API.Projects.generate(projectId);
+
+        // Completa último step
+        setTimeout(() => {
+          const last = document.getElementById('genStep5');
+          last.classList.remove('active');
+          last.classList.add('done');
+          last.querySelector('.gen-step-icon').textContent = '✓';
+        }, 3200);
+
+        setTimeout(() => {
+          overlay.classList.remove('show');
+          showToast('Site gerado com sucesso! 🎉', 'success');
+          // Redireciona para dashboard com preview
+          window.location.href = `dashboard.html?preview=${projectId}`;
+        }, 4000);
+
+      } catch (error) {
+        overlay.classList.remove('show');
+        showToast(error.error || 'Erro ao gerar site. Tente novamente.', 'error');
+      }
+    };
+
+    // Boot
+    init();
+
+    // Auto-redirect do dashboard com preview
+    const url = new URLSearchParams(window.location.search);
+    if (url.get('preview')) {
+      // Abre preview automaticamente quando redireciona
+    }
+  </script>
+</body>
+</html>
