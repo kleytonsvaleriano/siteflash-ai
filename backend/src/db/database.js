@@ -1,35 +1,48 @@
 /**
  * SiteFlash AI - Database Connection Pool
  * Gerencia conexões com PostgreSQL
- *
- * Usa config object (não connectionString) para suportar
- * senhas com caracteres especiais: !@# × etc.
  */
 const { Pool } = require('pg');
 require('dotenv').config();
 
-/**
- * Parseia DATABASE_URL manualmente via regex,
- * evitando problema do URL parser com senhas especiais.
- * Ex: postgres://user:!@#senha×@host:5432/db
- */
-const parseDbUrl = (url) => {
-  if (!url) throw new Error('DATABASE_URL não definida no .env');
+const getDbConfig = () => {
+  // Prioridade 1: Variáveis separadas (mais seguro no EasyPanel)
+  if (process.env.DB_PASSWORD || process.env.DB_PASS) {
+    return {
+      user: process.env.DB_USER || 'postgres',
+      password: process.env.DB_PASSWORD || process.env.DB_PASS,
+      host: process.env.DB_HOST || 'pixelize_pixelize_db',
+      port: parseInt(process.env.DB_PORT) || 5432,
+      database: process.env.DB_NAME || 'pixelize',
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+    };
+  }
 
-  // Regex: pega user, tudo entre :// e @host como senha (mais robusto)
-  // postgres://USER:SENHA@HOST:PORT/DB?params
-  const m = url.match(/^postgres(?:ql)?:\/\/([^:]+):(.+)@([^:/]+):?(\d*)\/([^?#]+)/);
-  if (!m) throw new Error(`DATABASE_URL inválida: ${url.substring(0, 30)}...`);
+  // Prioridade 2: DATABASE_URL (Fallback)
+  if (process.env.DATABASE_URL) {
+    const url = process.env.DATABASE_URL;
+    try {
+      // Regex para extrair dados sem quebrar com caracteres especiais na senha
+      const m = url.match(/^postgres(?:ql)?:\/\/([^:]+):(.+)@([^:/]+):?(\d*)\/([^?#]+)/);
+      if (m) {
+        return {
+          user: m[1],
+          password: m[2],
+          host: m[3],
+          port: parseInt(m[4]) || 5432,
+          database: m[5].split('?')[0],
+          ssl: url.includes('sslmode=disable') ? false : undefined
+        };
+      }
+    } catch (e) {
+      console.error('⚠️ Erro ao parsear DATABASE_URL, tentando config padrão...');
+    }
+  }
 
-  const [, user, password, host, port, database] = m;
-  const ssl = url.includes('sslmode=disable') ? false : undefined;
-
-  return { user, password, host, port: parseInt(port) || 5432, database, ssl };
+  throw new Error('Configuração de banco de dados não encontrada (DATABASE_URL ou DB_PASSWORD)');
 };
 
-const dbConfig = parseDbUrl(process.env.DATABASE_URL);
-
-console.log(`🔌 DB: ${dbConfig.user}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`);
+const dbConfig = getDbConfig();
 
 const pool = new Pool({
   ...dbConfig,
