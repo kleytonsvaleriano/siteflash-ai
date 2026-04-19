@@ -1,57 +1,44 @@
 version: '3.8'
 
-services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: siteflash_db
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: siteflash
-      POSTGRES_PASSWORD: siteflash_secret
-      POSTGRES_DB: siteflash_db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U siteflash"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+# =====================================================
+# SiteFlash AI - EasyPanel Docker Compose Stack
+# Para usar: EasyPanel > Projeto > "+" > Docker Compose
+# =====================================================
 
+services:
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: siteflash_api
     restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 3001
-      DATABASE_URL: postgresql://siteflash:siteflash_secret@postgres:5432/siteflash_db
-      JWT_SECRET: your_super_secret_jwt_key_change_in_production
-      FRONTEND_URL: http://localhost:3000
+      # Substitua pela senha real do seu PostgreSQL (ver credenciais no EasyPanel)
+      DATABASE_URL: postgres://postgres:${DB_PASSWORD}@${DB_HOST}:5432/pixelize?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL}
+      MAX_FILE_SIZE: 5242880
     ports:
       - "3001:3001"
     volumes:
-      - ./backend/uploads:/app/uploads
+      - uploads_data:/app/uploads
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: siteflash_frontend
     restart: unless-stopped
+    ports:
+      - "80:80"
     depends_on:
       - backend
-    environment:
-      API_URL: http://backend:3001
-    ports:
-      - "3000:80"
 
 volumes:
-  postgres_data:
+  uploads_data:
